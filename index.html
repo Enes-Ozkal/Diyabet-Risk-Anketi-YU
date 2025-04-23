@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diyabet Risk Anketi</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .question {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .question h3 {
+      margin-bottom: 10px;
+    }
+    .question label {
+      display: block;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .question input[type="radio"] {
+      display: none;
+    }
+    .question input[type="radio"]:checked + label {
+      background-color: #d0ebff;
+      transform: scale(1.03);
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+    }
+    .bmi-calc {
+      margin-top: 10px;
+    }
+    .bmi-calc input {
+      width: 45%;
+      padding: 5px;
+      margin: 5px 2%;
+    }
+    .bmi-calc button {
+      padding: 5px 10px;
+      margin-top: 5px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .bmi-result {
+      margin-top: 5px;
+      font-weight: bold;
+      color: #007BFF;
+    }
+    button {
+      background: #007BFF;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto;
+    }
+    .result {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 20px;
+    }
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255,255,255,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
+      display: none;
+    }
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #007BFF;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Diyabet Risk Anketi</h1>
+  <form id="quizForm">
+    <div class="question">
+      <h3>1. Yaşınız kaç?</h3>
+      <input type="radio" name="q1" id="q1a" value="0"><label for="q1a">45 yaşından küçük</label>
+      <input type="radio" name="q1" id="q1b" value="2"><label for="q1b">45-54 yaş arası</label>
+      <input type="radio" name="q1" id="q1c" value="3"><label for="q1c">55-64 yaş arası</label>
+      <input type="radio" name="q1" id="q1d" value="4"><label for="q1d">64 yaşından büyük</label>
+    </div>
+    <div class="question">
+      <h3>2. Beden kitle indeksiniz (BKİ) kaç?</h3>
+      <input type="radio" name="q2" id="q2a" value="0"><label for="q2a">25 kg/m²'nin altında</label>
+      <input type="radio" name="q2" id="q2b" value="1"><label for="q2b">25-30 kg/m² arası</label>
+      <input type="radio" name="q2" id="q2c" value="3"><label for="q2c">30 kg/m² ve üzeri</label>
+      <div class="bmi-calc">
+        <input type="number" id="height" placeholder="Boy (cm)">
+        <input type="number" id="weight" placeholder="Kilo (kg)">
+        <button type="button" onclick="calculateBMI()">BKİ Hesapla</button>
+        <div class="bmi-result" id="bmiResult"></div>
+      </div>
+    </div>
+    <div class="question">
+      <h3>3. Bel çevreniz kaç cm? (Erkek/Kadın)</h3>
+      <input type="radio" name="q3" id="q3a" value="0"><label for="q3a">Erkek: 94 cm'den küçük / Kadın: 80 cm'den küçük</label>
+      <input type="radio" name="q3" id="q3b" value="3"><label for="q3b">Erkek: 94-102 cm arası / Kadın: 80-88 cm arası</label>
+      <input type="radio" name="q3" id="q3c" value="4"><label for="q3c">Erkek: 102 cm'den büyük / Kadın: 88 cm'den büyük</label>
+    </div>
+    <div class="question">
+      <h3>4. Çoğunlukla günde en az 30 dakika egzersiz yapıyor musunuz?</h3>
+      <input type="radio" name="q4" id="q4a" value="0"><label for="q4a">Evet</label>
+      <input type="radio" name="q4" id="q4b" value="2"><label for="q4b">Hayır</label>
+    </div>
+    <div class="question">
+      <h3>5. Hangi sıklıkla sebze ve meyve tüketiyorsunuz?</h3>
+      <input type="radio" name="q5" id="q5a" value="0"><label for="q5a">Her gün</label>
+      <input type="radio" name="q5" id="q5b" value="1"><label for="q5b">Her gün değil</label>
+    </div>
+    <div class="question">
+      <h3>6. Kan basıncı yüksekliği için hiç ilaç kullandınız mı veya sizde yüksek tansiyon bulundu mu?</h3>
+      <input type="radio" name="q6" id="q6a" value="0"><label for="q6a">Hayır</label>
+      <input type="radio" name="q6" id="q6b" value="2"><label for="q6b">Evet</label>
+    </div>
+    <div class="question">
+      <h3>7. Doktor veya herhangi bir sağlık personeli tarafından kan şekerinizin yüksek veya sınırda olduğu söylendi mi?</h3>
+      <input type="radio" name="q7" id="q7a" value="0"><label for="q7a">Hayır</label>
+      <input type="radio" name="q7" id="q7b" value="5"><label for="q7b">Evet</label>
+    </div>
+    <div class="question">
+      <h3>8. Aile bireylerinizden herhangi birinde diyabet tanısı konuldu mu?</h3>
+      <input type="radio" name="q8" id="q8a" value="0"><label for="q8a">Hayır</label>
+      <input type="radio" name="q8" id="q8b" value="3"><label for="q8b">Evet, amca, hala, dayı, teyze, kuzen ya da yeğen</label>
+      <input type="radio" name="q8" id="q8c" value="5"><label for="q8c">Evet, biyolojik anne, baba, kardeş veya çocuğunuz</label>
+    </div>
+    <button type="button" onclick="calculateScore()">Cevapları Göster</button>
+  </form>
+  <div class="result" id="result"></div>
+
+  <div class="loading-screen" id="loading">
+    <div class="spinner"></div>
+    <p>Sonuç hesaplanıyor, lütfen bekleyiniz...</p>
+  </div>
+
+  <script>
+    function calculateScore() {
+      let total = 0;
+      for (let i = 1; i <= 8; i++) {
+        let selected = document.querySelector(`input[name=q${i}]:checked`);
+        if (!selected) {
+          alert(`${i}. soruyu cevaplamadınız.`);
+          return;
+        }
+        total += Number(selected.value);
+      }
+
+      document.getElementById("loading").style.display = "flex";
+
+      setTimeout(() => {
+        let risk = "";
+        if (total < 7) risk = "Düşük risk (%1 - 1/100)";
+        else if (total >= 7 && total <= 11) risk = "Hafif risk (%4 - 1/25)";
+        else if (total >= 12 && total <= 14) risk = "Orta risk (%16 - 1/6)";
+        else if (total >= 15 && total <= 20) risk = "Yüksek risk (%33 - 1/3)";
+        else risk = "Çok yüksek risk (%50 - 1/2)";
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("result").innerText = `Toplam Puanınız: ${total}\nRisk Durumunuz: ${risk}`;
+      }, 2000);
+    }
+
+    function calculateBMI() {
+  const height = parseFloat(document.getElementById("height").value);
+  const weight = parseFloat(document.getElementById("weight").value);
+  const result = document.getElementById("bmiResult");
+
+  if (!height || !weight || height <= 0 || weight <= 0) {
+    result.innerText = "Lütfen geçerli boy ve kilo girin.";
+    return;
+  }
+
+  const heightInMeters = height / 100;
+  const bmi = weight / (heightInMeters * heightInMeters);
+  result.innerText = `BKİ: ${bmi.toFixed(1)}`;
+
+  // Otomatik olarak uygun seçeneği işaretleme
+  if (bmi < 25) {
+    document.getElementById("q2a").checked = true;
+  } else if (bmi >= 25 && bmi < 30) {
+    document.getElementById("q2b").checked = true;
+  } else {
+    document.getElementById("q2c").checked = true;
+  }
+}
+
+  </script>
+</body>
+</html>
